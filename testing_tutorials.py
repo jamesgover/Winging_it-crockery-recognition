@@ -7,11 +7,18 @@ import skimage
 import skimage.segmentation
 from skimage import data, filters, measure
 import scipy
+from skimage.color import rgb2gray
 #plt.show()
+
 
 def find_blobs(image):
     blobs = scipy.ndimage.find_objects(image)
     print(blobs)
+
+
+def plot(image):
+    plt.imshow(image, interpolation='nearest')
+    plt.show()
 
 def plot_squares(image):
     fig, ax = plt.subplots(figsize=(10, 6))
@@ -30,7 +37,7 @@ def plot_squares(image):
     plt.tight_layout()
     plt.show()
 
-def plot_blobs():
+def make_blobs():
     n = 9
     l = 200
     im = np.zeros((l, l))
@@ -38,25 +45,24 @@ def plot_blobs():
     im[(points[0]).astype(np.int), (points[1]).astype(np.int)] = 1
     im = filters.gaussian(im, sigma=l / (4. * n))
     blobs = im > im.mean()
-    #all_labels = measure.label(blobs)
-    blobs_labels, segments = measure.label(blobs, background=0, return_num=True)
+    return blobs
+
+def sep_and_strip_img(image):
+    image_labels, segments = measure.label(image, background=0, return_num=True)
     print("there were {} segments".format(segments))
 
     # remove artifacts connected to image border
-    cleared_blobs = skimage.segmentation.clear_border(blobs_labels)
-    plt.imshow(cleared_blobs, interpolation='nearest')
-    plt.show()
-    plot_squares(cleared_blobs)
+    cleared_labeled = skimage.segmentation.clear_border(image_labels)
+    return cleared_labeled
+    #plt.imshow(cleared_labeled, interpolation='nearest')
+    #plt.show()
+    #plot_squares(cleared_labeled)
 
-def plot_mask():
-    filename = os.path.join(skimage.data_dir, 'camera.png')
-    camera = skimage.data.camera()
-    val = filters.threshold_otsu(camera)
-    mask = camera < val
-    plt.imshow(mask, cmap='gray', interpolation='nearest')
-    plt.axis('off')
-    plt.tight_layout()
-    plt.show()
+def get_mask(image):
+    image = rgb2gray(image)
+    val = filters.threshold_otsu(image)
+    mask = image < val
+    return mask
 
 def load_save_disp():
     logo = skio.imread('http://scikit-image.org/_static/img/logo.png')
@@ -64,4 +70,9 @@ def load_save_disp():
     plt.imshow(logo, cmap='gray', interpolation='nearest')
     plt.show()
 
-plot_blobs()
+
+#plot_squares(sep_and_strip_img(make_blobs()))
+bowl_balls = skio.imread("https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQsuOCvBFxo8VQhrsJzcfjPHhy8ffPI0h3Mi__JXfytkwhHstVi")
+plot_squares(sep_and_strip_img(get_mask(bowl_balls)))
+
+plot(bowl_balls)
