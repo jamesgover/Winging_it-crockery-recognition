@@ -93,3 +93,4 @@ bowl_balls = skio.imread("https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9Gc
 data = plot_squares(sep_and_strip_img(get_mask(bowl_balls)))
 
 plot(bowl_balls)
+
