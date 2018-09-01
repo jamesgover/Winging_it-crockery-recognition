@@ -7,6 +7,7 @@ import skimage
 import skimage.segmentation
 from skimage import data, filters, measure
 import scipy
+import pandas as pd
 from skimage.color import rgb2gray
 #plt.show()
 
@@ -20,10 +21,24 @@ def plot(image):
     plt.imshow(image, interpolation='nearest')
     plt.show()
 
+
+def create_pd_frame(region=False):
+    if region is False:
+        frame = pd.DataFrame(columns=["Area", "Orientation", "BBoxX", "BBoxY", "Type_o_Object"])
+    else:
+        minr, minc, maxr, maxc = region.bbox
+        frame = pd.DataFrame([[region.area, region.orientation, maxr - minr, maxc - minc, False]],
+                             columns=["Area", "Orientation", "BBoxX", "BBoxY", "Type_o_Object"])
+    #print(frame)
+    return frame
+
+
 def plot_squares(image):
     fig, ax = plt.subplots(figsize=(10, 6))
     ax.imshow(image)
-
+    data = create_pd_frame()
+    #useful link == https://au.mathworks.com/help/images/ref/regionprops.html
+    #print(measure.regionprops(image)[0])
     for region in measure.regionprops(image):
         # take regions with large enough areas
         if region.area >= 100:
@@ -32,10 +47,12 @@ def plot_squares(image):
             rect = mpatch.Rectangle((minc, minr), maxc - minc, maxr - minr,
                                       fill=False, edgecolor='red', linewidth=2)
             ax.add_patch(rect)
-
+            region_data = create_pd_frame(region=region)
+            data = data.append(region_data, ignore_index=True)
     ax.set_axis_off()
     plt.tight_layout()
     plt.show()
+    return data
 
 def make_blobs():
     n = 9
@@ -73,6 +90,6 @@ def load_save_disp():
 
 #plot_squares(sep_and_strip_img(make_blobs()))
 bowl_balls = skio.imread("https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQsuOCvBFxo8VQhrsJzcfjPHhy8ffPI0h3Mi__JXfytkwhHstVi")
-plot_squares(sep_and_strip_img(get_mask(bowl_balls)))
+data = plot_squares(sep_and_strip_img(get_mask(bowl_balls)))
 
 plot(bowl_balls)
