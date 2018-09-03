@@ -12,11 +12,16 @@ def create_dir(folder=FOLDER_NAME):
         print('Error: Creating directory of data')
 
 
+def get_rate():
+    return 100
 
-inc = 0
+
+
+frame_no = 0
+rate = get_rate()
 #create_dir()
 cap = cv2.VideoCapture(0)
-while inc < 5:
+while frame_no < 1000:
     # Capture frame-by-frame
     ret, frame = cap.read()
 
@@ -24,9 +29,10 @@ while inc < 5:
     cv2.imshow('frame.', frame)
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
-    frame_name = "./" + FOLDER_NAME + "/pot_frame" + str(inc) + ".jpg"
-    cv2.imwrite(frame_name, frame)
-    inc += 1
+    if frame_no % rate is 0:
+        frame_name = "./" + FOLDER_NAME + "/pot_frame" + str(frame_no) + ".jpg"
+        cv2.imwrite(frame_name, frame)
+    frame_no += 1
 
 # When everything done, release the capture
 cap.release()
