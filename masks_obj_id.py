@@ -5,7 +5,7 @@ import os
 from skimage import io as skio
 import skimage
 import skimage.segmentation
-from skimage import data, filters, measure
+from skimage import filters, measure
 import scipy
 import pandas as pd
 from skimage.color import rgb2gray
@@ -130,10 +130,10 @@ def masks_main():
                              "uOCvBFxo8VQhrsJzcfjPHhy8ffPI0h3Mi__JXfytkwhHstVi")
     #image = skio.imread("./frames/pot_frame400.jpg")
 
-    print("data =\n" + img_to_data(image))
+    print("data =\n" + str(img_to_data(image)))
 
 
-# masks_main()
+masks_main()
 
 
 
