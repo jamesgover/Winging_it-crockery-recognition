@@ -7,6 +7,7 @@ from py_computer_vision import masks_obj_id as masks
 FOLDER_NAME = 'frames'
 DATA_FILE = 'file_data.csv'
 
+
 def create_dir(folder=FOLDER_NAME):
     try:
         if not os.path.exists(folder):
@@ -23,7 +24,7 @@ def load_data(file):
     data = masks.create_pd_frame(original=False)
     try:
         loaded_data = pd.read_csv(filepath_or_buffer=file)
-        data.append(loaded_data, ignore_index=True)
+        data = data.append(loaded_data, ignore_index=True, sort=True)
     except IOError:
         print("Error: error loading data.")
     return data
@@ -43,7 +44,6 @@ def main():
     while frame_no < 1000:
         # Capture frame-by-frame
         ret, frame = cap.read()
-
         # Display the resulting frame
         cv2.imshow('frame.', frame)
         if cv2.waitKey(1) & 0xFF == ord('q'):
@@ -55,7 +55,7 @@ def main():
             cv2.imwrite(frame_name, frame)
             new_data = masks.img_to_data(frame)
             masks.plot(masks.sep_and_strip_img(masks.get_mask(frame)))
-            data = data.append(new_data, ignore_index=True)
+            data = data.append(new_data, ignore_index=True, sort=True)
 
             # process image
         frame_no += 1
@@ -68,5 +68,5 @@ def main():
     save_data(data)
 
 
-main()
+# main()
 
