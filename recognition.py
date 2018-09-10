@@ -2,6 +2,8 @@ from py_computer_vision import video_to_img as v2i
 from sklearn.neural_network import MLPClassifier as Mlpc
 import pandas as pd
 import sklearn
+import numpy as np
+
 
 RANDOM_STATE = 42
 CLF_HIDDEN_LAYERS = (6, 6, 6)  # Simple arbitary choose.
@@ -19,14 +21,14 @@ def create_and_train(data=None):
     # random_state set to make deterministic; alpha=1e-5 is low L2 to as over-fitting is avoided by using a simple model
     X = data.drop(columns=["Type_o_Object"])
     y = pd.DataFrame(data, columns=["Type_o_Object"])
-    #print(X, y)
     X_train, X_test, y_train, y_test = sklearn.model_selection.train_test_split(
-        X, y, test_size=0.80, random_state=RANDOM_STATE)  # test size large to compensate for small data set
+        X, y, test_size=0.20, random_state=RANDOM_STATE)  # test small large to compensate for small data set
+    y_train, y_test = y_train.astype(dtype=np.float64), y_test.astype(dtype=np.float64)
     clf.fit(X_train, y_train)
     train_accuracy = clf.score(X_train, y_train)
     test_accuracy = clf.score(X_test, y_test)
     print("the training accuracy was {}.  The test accuracy was {}".
-          format(train_accuracy, test_accuracy))
+            format(train_accuracy, test_accuracy))
 
 
 # #####_____Cutlery_____#####

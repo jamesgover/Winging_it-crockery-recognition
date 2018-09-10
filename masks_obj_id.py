@@ -17,6 +17,21 @@ def find_blobs(image):
     blobs = scipy.ndimage.find_objects(image)
     print(blobs)
 
+def get_item_string(item):
+    if item is 1:
+        item = 'bowl'
+    elif item is 2:
+        item = 'plate'
+    elif item is 3:
+        item = 'small_plate'
+    elif item is 4:
+        item = 'bread_bowl'
+    elif item is 5:
+        item = 'cup'
+    else:
+        item = "ERROR"
+    return item
+
 
 def label_obj(region, original, train=TRAIN):
     if train:
@@ -26,18 +41,6 @@ def label_obj(region, original, train=TRAIN):
         cropped_original = original[minr:maxr, minc:maxc]
         plot(cropped_original)
         item = int(input("what is this? \n1=bowl\n2=plate\n3=small_plate\n4=bread_bowl\n5=cup\n6=ERROR"))
-        if item is 1:
-            item = 'bowl'
-        elif item is 2:
-            item = 'plate'
-        elif item is 3:
-            item = 'small_plate'
-        elif item is 4:
-            item = 'bread_bowl'
-        elif item is 5:
-            item = 'cup'
-        else:
-            item = 'ERROR'
         return item
     else:
         return 2
