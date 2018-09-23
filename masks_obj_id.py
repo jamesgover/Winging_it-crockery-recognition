@@ -14,12 +14,12 @@ TRAIN = True
 MASK_SENSITIVITY = .2
 MIN_AREA = 100000
 
+
+'''simple function to let functions toggle the train variable
+'''
 def set_train(train):
     TRAIN = train
 
-def find_blobs(image):
-    blobs = scipy.ndimage.find_objects(image)
-    print(blobs)
 
 def get_item_string(item):
     if item is 1:
@@ -51,14 +51,24 @@ def label_obj(region, original, train=TRAIN):
         # item = int(input("what is this? \n1=bowl\n2=plate\n3=small_plate\n4=bread_bowl\n5=cup\n6=DROP\n7=ERROR\n"))
         return item
     else:
-        return 2
+        return -1  # default value that is obviously not a classification
 
 
+'''wraps plt.imshow and plt.show for a one line work around to common python error in imshow()
+@:param image is the image to show
+'''
 def plot(image):
     plt.imshow(image, interpolation='nearest')
     plt.show()
 
 
+'''creating a panda frame representing the region (or an empty frame if False)
+@:param original, original photo used to display to user in training mode
+@:param region, the region to be captured. 
+The captured data will be in the headers
+["Area", "Orientation", "BBoxX", "BBoxY", 'Type_o_Object']
+@:return the created data frame
+'''
 def create_pd_frame(original, region=False):
     if region is False:
         frame = pd.DataFrame(columns=["Area", "Orientation", "BBoxX", "BBoxY", 'Type_o_Object'])
@@ -72,9 +82,15 @@ def create_pd_frame(original, region=False):
     return frame
 
 
-def plot_squares(image, original, show=False):
+''' takes in a "regioned" image and for each region in the image
+@:param image, the regioned image that contains the regions whose data will be captured
+@:param original, the original non-regioned image used for training and displaying
+@:param show a boolean whether or not show the image after processing
+@:return the data of the regions in image joined
+'''
+def process_regions(image, original, show=False):
     fig, ax = plt.subplots(figsize=(10, 6))
-    #ax.imshow(image)
+    ax.imshow(image)
     data = create_pd_frame(original)
     # useful link == https://au.mathworks.com/help/images/ref/regionprops.html
     # print(measure.regionprops(image)[0])
@@ -85,39 +101,32 @@ def plot_squares(image, original, show=False):
             minr, minc, maxr, maxc = region.bbox
             rect = mpatch.Rectangle((minc, minr), maxc - minc, maxr - minr,
                                       fill=False, edgecolor='red', linewidth=2)
-            #ax.add_patch(rect)
+            ax.add_patch(rect)
             region_data = create_pd_frame(original, region=region)
             data = data.append(region_data, ignore_index=True)
-    #ax.set_axis_off()
+    # ax.set_axis_off()
     if show:
         plt.tight_layout()
         plt.show()
     return data
 
-
-def make_blobs():
-    n = 9
-    l = 200
-    im = np.zeros((l, l))
-    points = l * np.random.random((2, n ** 2))
-    im[(points[0]).astype(np.int), (points[1]).astype(np.int)] = 1
-    im = filters.gaussian(im, sigma=l / (4. * n))
-    blobs = im > im.mean()
-    return blobs
-
-
+''' seperated an image into regions and removes the edge touching regions (strips it)
+@:param image the image to be processed
+@:return the image with regions
+'''
 def sep_and_strip_img(image):
+    # turn the image into an image that has distinct regions
     image_labels, segments = measure.label(image, background=1, return_num=True)
-    # print("there were {} segments".format(segments))
 
     # remove artifacts connected to image border
     cleared_labeled = skimage.segmentation.clear_border(image_labels)
     return cleared_labeled
-    # plt.imshow(cleared_labeled, interpolation='nearest')
-    # plt.show()
-    # plot_squares(cleared_labeled)
 
 
+''' applys a binary filter based on saturation to an image
+@:param image the image to be processed
+@:return the image that is now a binary (on or off) mask
+'''
 def get_mask(image):
     image = rgb2gray(image)
     val = filters.threshold_otsu(image)
@@ -125,27 +134,25 @@ def get_mask(image):
     return mask
 
 
-def load_save_disp():
-    logo = skio.imread('http://scikit-image.org/_static/img/logo.png')
-    skio.imsave('local_logo.png', logo)
-    plt.imshow(logo, cmap='gray', interpolation='nearest')
-    plt.show()
-
-
+''' top level function to stitch together image manipulation 
+to have the end level effect of converting image to data frame of the contained regions (objects of interest)
+@:param img the image to be captures by data
+@:return the data of the objects of interest
+'''
 def img_to_data(img):
-    data = plot_squares(sep_and_strip_img(get_mask(img)), img)
+    data = process_regions(sep_and_strip_img(get_mask(img)), img)
     return data
 
 
+''' 
+main function for isolating masks_obj features for debugging
+'''
 def masks_main():
-    # plot_squares(sep_and_strip_img(make_blobs()))
-    #image = skio.imread("https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQs" +
-    #                         "uOCvBFxo8VQhrsJzcfjPHhy8ffPI0h3Mi__JXfytkwhHstVi")
     image = skio.imread("./sample_photos/20180923_095828.jpg")
     plot(image)
     plot(get_mask(image))
     plot(sep_and_strip_img(get_mask(image)))
-    plot_squares(sep_and_strip_img(get_mask(image)), image, show=True)
+    process_regions(sep_and_strip_img(get_mask(image)), image, show=True)
     print("data =\n" + str(img_to_data(image)))
 
 
