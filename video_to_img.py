@@ -2,7 +2,8 @@ import numpy as np
 import cv2
 import os
 import pandas as pd
-from py_computer_vision import masks_obj_id as masks
+#from py_computer_vision
+import masks_obj_id as masks
 
 FOLDER_NAME = 'frames'
 DATA_FILE = 'file_data.csv'
