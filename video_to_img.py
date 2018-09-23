@@ -2,14 +2,18 @@ import numpy as np
 import cv2
 import os
 import pandas as pd
-#from py_computer_vision
 import masks_obj_id as masks
+from skimage import io as skio
 
-FOLDER_NAME = 'frames'
-DATA_FILE = 'file_data.csv'
+FRAMES_FOLDER = 'frames'  # where to save photos by default
+DATA_FILE = 'sample_photos_data.csv'  # the file that stores data
+PHOTO_FOLDER = 'sample_photos'  # directory where program will find photos to use as test set
 
 
-def create_dir(folder=FOLDER_NAME):
+''' a wrapper for os.makedirs to handle errors
+@:param folder, the folder to try to make
+'''
+def create_dir(folder=FRAMES_FOLDER):
     try:
         if not os.path.exists(folder):
             os.makedirs(folder)
@@ -17,10 +21,16 @@ def create_dir(folder=FOLDER_NAME):
         print('Error: Creating directory of data')
 
 
+''' function to save data, allows for scanning, redirecting, duplicating, printing and ect. to be implemented
+@:param data, the data to be saved as a csv'''
 def save_data(data):
     data.to_csv(path_or_buf=DATA_FILE)
 
 
+'''
+@:param file, the file to be loaded
+@:return a panda.Dataframe instance capturing the loaded data
+'''
 def load_data(file):
     data = masks.create_pd_frame(original=False)
     try:
@@ -31,12 +41,18 @@ def load_data(file):
     return data
 
 
-
+''' function to be implemented when adapting for a live stream application (attatched to washing machine) 
+instead of just a batch system as we tested it as
+@returns the rate (in frames/(screen_size - crockery_length))'''
 def get_rate():
     return 100
 
 
-def main():
+''' uses the system camera (webcam for a laptop) to take a video and process frames and stores the 
+resultant data in DATA_FILE to be fed into recognition.py during operation under stream conditions
+this is NOT used for batch processing
+'''
+def capture_and_process():
     frame_no = 0
     rate = get_rate()
     # create_dir()
@@ -52,10 +68,10 @@ def main():
         if frame_no % rate is 0:
             #   THIS SHOULD BE THREADED
             # save image
-            frame_name = "./" + FOLDER_NAME + "/pot_frame" + str(frame_no) + ".jpg"
+            frame_name = "./" + FRAMES_FOLDER + "/pot_frame" + str(frame_no) + ".jpg"
             cv2.imwrite(frame_name, frame)
             new_data = masks.img_to_data(frame)
-            masks.plot(masks.sep_and_strip_img(masks.get_mask(frame)))
+            # masks.plot(masks.sep_and_strip_img(masks.get_mask(frame)))
             data = data.append(new_data, ignore_index=True, sort=True)
 
             # process image
@@ -69,5 +85,25 @@ def main():
     save_data(data)
 
 
-# main()
+''' iterated over photos in DATA_FILE and (currently) sets creates a labeled data set by querying the user
+'''
+def process_sample_photos():
+    masks.set_train(True)
+    data = load_data(DATA_FILE)
+    for filename in os.listdir(PHOTO_FOLDER):
+        if filename.endswith(".jpg"):
+            image_name = os.path.join(PHOTO_FOLDER, filename)
+            image = skio.imread("./" + PHOTO_FOLDER + '/' + filename)
+            masks.plot(image)
+            new_data = masks.img_to_data(image)
+            # masks.plot(masks.sep_and_strip_img(masks.get_mask(image)))
+            data = data.append(new_data, ignore_index=True, sort=True)
+            continue
+        else:
+            continue
+    # save data as csv
+    save_data(data)
+
+
+# process_sample_photos()
 

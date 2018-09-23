@@ -10,8 +10,12 @@ import scipy
 import pandas as pd
 from skimage.color import rgb2gray
 # plt.show()
-TRAIN = False
+TRAIN = True
+MASK_SENSITIVITY = .2
+MIN_AREA = 100000
 
+def set_train(train):
+    TRAIN = train
 
 def find_blobs(image):
     blobs = scipy.ndimage.find_objects(image)
@@ -36,11 +40,15 @@ def get_item_string(item):
 def label_obj(region, original, train=TRAIN):
     if train:
         # plot(region.filled_image())
-        plot(region.filled_image)
+        #plot(region.filled_image)
         minr, minc, maxr, maxc = region.bbox
         cropped_original = original[minr:maxr, minc:maxc]
         plot(cropped_original)
-        item = int(input("what is this? \n1=bowl\n2=plate\n3=small_plate\n4=bread_bowl\n5=cup\n6=ERROR"))
+        try:
+            item = int(input("what is this? \n1=bowl\n2=plate\n3=DROP\n4=ERROR\n"))
+        except:
+            item = 4
+        # item = int(input("what is this? \n1=bowl\n2=plate\n3=small_plate\n4=bread_bowl\n5=cup\n6=DROP\n7=ERROR\n"))
         return item
     else:
         return 2
@@ -53,35 +61,37 @@ def plot(image):
 
 def create_pd_frame(original, region=False):
     if region is False:
-        frame = pd.DataFrame(columns=["Area", "Orientation", "BBoxX", "BBoxY", "Type_o_Object"])
+        frame = pd.DataFrame(columns=["Area", "Orientation", "BBoxX", "BBoxY", 'Type_o_Object'])
     else:
         minr, minc, maxr, maxc = region.bbox
         frame = pd.DataFrame([[region.area, region.orientation, maxr - minr,
                                maxc - minc, label_obj(region, original, train=TRAIN)]],
                              columns=["Area", "Orientation", "BBoxX", "BBoxY", "Type_o_Object"])
+        frame = frame[frame.Type_o_Object != 6]
     # print(frame)
     return frame
 
 
-def plot_squares(image, original):
+def plot_squares(image, original, show=False):
     fig, ax = plt.subplots(figsize=(10, 6))
-    ax.imshow(image)
+    #ax.imshow(image)
     data = create_pd_frame(original)
     # useful link == https://au.mathworks.com/help/images/ref/regionprops.html
     # print(measure.regionprops(image)[0])
     for region in measure.regionprops(image):
         # take regions with large enough areas
-        if region.area >= 100:
+        if region.area >= MIN_AREA:
             # draw rectangle around segmented coins
             minr, minc, maxr, maxc = region.bbox
             rect = mpatch.Rectangle((minc, minr), maxc - minc, maxr - minr,
                                       fill=False, edgecolor='red', linewidth=2)
-            ax.add_patch(rect)
+            #ax.add_patch(rect)
             region_data = create_pd_frame(original, region=region)
             data = data.append(region_data, ignore_index=True)
-    ax.set_axis_off()
-    plt.tight_layout()
-    # plt.show()
+    #ax.set_axis_off()
+    if show:
+        plt.tight_layout()
+        plt.show()
     return data
 
 
@@ -97,7 +107,7 @@ def make_blobs():
 
 
 def sep_and_strip_img(image):
-    image_labels, segments = measure.label(image, background=0, return_num=True)
+    image_labels, segments = measure.label(image, background=1, return_num=True)
     # print("there were {} segments".format(segments))
 
     # remove artifacts connected to image border
@@ -111,7 +121,7 @@ def sep_and_strip_img(image):
 def get_mask(image):
     image = rgb2gray(image)
     val = filters.threshold_otsu(image)
-    mask = image < val
+    mask = image < (val + MASK_SENSITIVITY)
     return mask
 
 
@@ -129,14 +139,17 @@ def img_to_data(img):
 
 def masks_main():
     # plot_squares(sep_and_strip_img(make_blobs()))
-    image = skio.imread("https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQs" +
-                             "uOCvBFxo8VQhrsJzcfjPHhy8ffPI0h3Mi__JXfytkwhHstVi")
-    #image = skio.imread("./frames/pot_frame400.jpg")
-
+    #image = skio.imread("https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQs" +
+    #                         "uOCvBFxo8VQhrsJzcfjPHhy8ffPI0h3Mi__JXfytkwhHstVi")
+    image = skio.imread("./sample_photos/20180923_095828.jpg")
+    plot(image)
+    plot(get_mask(image))
+    plot(sep_and_strip_img(get_mask(image)))
+    plot_squares(sep_and_strip_img(get_mask(image)), image, show=True)
     print("data =\n" + str(img_to_data(image)))
 
 
-#masks_main()
+# masks_main()
 
 
 
