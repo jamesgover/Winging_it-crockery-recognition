@@ -156,7 +156,3 @@ def masks_main():
     print("data =\n" + str(img_to_data(image)))
 
 
-# masks_main()
-
-
-
