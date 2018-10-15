@@ -46,15 +46,19 @@ class meal_scanner:
 
         fps = self.get_fps(cap, num_frames)
 
-        def decode(im):
+        def decode(image):
+            """
+            :param image:
+            :return:list(Region) region_objects a list of named tuple containing the location
+                    and data of the regions contained within image
+            """
             # Find barcodes and QR codes
-            decodedObjects = masks.decode(im)
+            region_objects = masks.decode(image)
             # Print results
-            for obj in decodedObjects:
-                print('Type : ', obj.type)
-                print('Data : ', obj.data)
-                print('Points : ', obj.rect, '\n')
-            return decodedObjects
+            for region in region_objects:
+                print('region data : ', region.data)
+                print('position ', region.location)
+            return region_objects
 
         result = []
         xboundary = self.dimensions[1]
@@ -65,12 +69,12 @@ class meal_scanner:
             ret, frame = cap.read()
             # Operations on frame
             im = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-            decodedObjects = decode(im)
+            region_objects = decode(im)
 
-            if empty_frame >= fps * time_threshold and decodedObjects == []:
+            if empty_frame >= fps * time_threshold and region_objects == []:
                 empty_frame += 1
                 possible_new_boundaries = [self.dimensions[1]]
-            elif decodedObjects == []:
+            elif region_objects == []:
                 empty_frame += 1
                 possible_new_boundaries = [xboundary]
             else:
@@ -79,29 +83,17 @@ class meal_scanner:
             # Define new namedtuple to create new decodedObject
             DecodedNew = namedtuple('Decoded', ['data', 'type', 'rect', 'polygon', 'xcentre'])
 
-            decodedObjectsNew = []
-            for decodedObject in decodedObjects:
-                # Add xcentre to decodedObjects
-                points = decodedObject.rect
+            region_objects = sorted(region_objects, key=lambda obj: obj.trailing_edge, reverse=True)
 
-                objdict = decodedObject._asdict()
-                objdict['xcentre'] = points.left + points.width / 2
-
-                decodedObjectsNew.append(DecodedNew(**objdict))
-
-            decodedObjectsNew = sorted(decodedObjectsNew, key=lambda obj: obj.xcentre, reverse=True)
-
-            for decodedObject in decodedObjectsNew:
-                if decodedObject.type != 'QRCODE':
-                    continue
+            for region in region_objects:
                 # x_centre = decodedObject.xcentre
-                x_left = decodedObject.rect.left
+                minr, minc, maxr, maxc = region.location
 
                 empty_frame = 0
 
-                if x_left < xboundary:
+                if minr < xboundary:
                     # Only record QR codes that are to the right of previous leftmost QR code.
-                    result.append(str(decodedObject.data)[2:-1])
+                    result.append(str(region.data)[2:-1])
                 possible_new_boundaries.append(x_left)
 
             xboundary = min(possible_new_boundaries)

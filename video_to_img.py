@@ -10,6 +10,9 @@ DATA_FILE = 'sample_photos_data.csv'  # the file that stores data
 PHOTO_FOLDER = 'sample_photos'  # directory where program will find photos to use as test set
 
 
+
+
+
 ''' a wrapper for os.makedirs to handle errors
 @:param folder, the folder to try to make
 '''
