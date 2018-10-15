@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # from py_computer_vision import video_to_img as v2i
 import video_to_img as v2i
 from sklearn.neural_network import MLPClassifier as Mlpc

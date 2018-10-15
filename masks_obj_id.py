@@ -188,4 +188,3 @@ def masks_main():
     process_regions(sep_and_strip_img(get_mask(image)), image, show=True)
     print("data =\n" + str(img_to_data(image)))
 
-
