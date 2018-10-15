@@ -37,7 +37,7 @@ def pre_process_data(data):
 # SAI APP CHALLENGE NOTES -- this function requires data quantities larger than we currently have access to so is
 #       currently not a viable option for classifying.
 # :param data, the data set to be used by the function
-def train_nueral_network(data):
+def train_neural_network(data):
     X_train, X_test, y_train, y_test = pre_process_data(data)
 
     # create the classifying network
@@ -81,7 +81,7 @@ def train_knn(data):
 # uses subset of data to create a test set
 # SAI APP CHALLENGE NOTES -- Not guaranteed accurate for data that is not linearly separable.
 #       Once larger sets of more accurate data are obtained this can be verified and the accuracy better assessed
-#       wtyith the small data set we are using is appears to be barely satisfactory but feasible enough to justify
+#       with the small data set we are using is appears to be barely satisfactory but feasible enough to justify
 #       further investigation with full scale data.
 # with out test dataset we had this at 0.8571428571428571% test accuracy which is respectable and can be improved
 # through optimisation of processing of the images
@@ -101,17 +101,23 @@ def train_lr(data):
 # uses subset of data to create a test set
 # SAI APP CHALLENGE NOTES --
 # :param data, the data set to be used by the function
-
 def main():
+    # if a dataset for training and testing does not exist create one by querying the user to identify objects
     try:
         loaded_data = pd.read_csv(filepath_or_buffer=v2i.DATA_FILE)
     except:
         v2i.process_sample_photos()  # this is to create the data set if it does not exist
+
+    # load the dataset (either the one just created or the pre-existing dataset);
     data = create_data()
-    print(data.columns.values)
-    train_knn(data)
-    train_nueral_network(data)
-    train_lr(data)
+    X_train, X_test, y_train, y_test = pre_process_data(data)
+    print("the labels of the X vector are: " + str(X_train.columns.values[:4]))
+    print("used to predict the object type")
+    print("\nTESTING LEARNING METHODS")
+    train_knn(data)  # k nearest neighbours model
+    train_neural_network(data)  # neural network classifier model
+    train_lr(data)  # logistic regression
+
 
 main()
 

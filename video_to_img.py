@@ -10,6 +10,9 @@ DATA_FILE = 'sample_photos_data.csv'  # the file that stores data
 PHOTO_FOLDER = 'sample_photos'  # directory where program will find photos to use as test set
 
 
+
+
+
 ''' a wrapper for os.makedirs to handle errors
 @:param folder, the folder to try to make
 '''
@@ -48,11 +51,15 @@ def get_rate():
     return 100
 
 
-''' uses the system camera (webcam for a laptop) to take a video and process frames and stores the 
-resultant data in DATA_FILE to be fed into recognition.py during operation under stream conditions
-this is NOT used for batch processing
-'''
-def capture_and_process():
+
+def live_train():
+    '''
+    uses the system camera (webcam for a laptop) to take a video and process frames and stores the
+    resultant data in DATA_FILE to be fed into recognition.py during operation under stream conditions
+    this is NOT used for batch processing
+    :return: nothing
+    '''
+    masks.set_train(True)
     frame_no = 0
     rate = get_rate()
     # create_dir()
@@ -85,18 +92,18 @@ def capture_and_process():
     save_data(data)
 
 
-''' iterated over photos in DATA_FILE and (currently) sets creates a labeled data set by querying the user
+''' 
+iterated over photos in DATA_FILE and (currently) sets creates a labeled data set by querying the user
 '''
-def process_sample_photos():
+def train(data_file=DATA_FILE, photo_folder=PHOTO_FOLDER):
     masks.set_train(True)
-    data = load_data(DATA_FILE)
-    for filename in os.listdir(PHOTO_FOLDER):
+    data = load_data(data_file)
+    for filename in os.listdir(photo_folder):
         if filename.endswith(".jpg"):
-            image_name = os.path.join(PHOTO_FOLDER, filename)
-            image = skio.imread("./" + PHOTO_FOLDER + '/' + filename)
+            image_name = os.path.join(photo_folder, filename)
+            image = skio.imread("./" + photo_folder + '/' + filename)
             masks.plot(image)
             new_data = masks.img_to_data(image)
-            # masks.plot(masks.sep_and_strip_img(masks.get_mask(image)))
             data = data.append(new_data, ignore_index=True, sort=True)
             continue
         else:

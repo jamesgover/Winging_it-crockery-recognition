@@ -1,5 +1,4 @@
 
-
 '''
 process is:
 1. determine track rate
@@ -8,4 +7,5 @@ process is:
 4. seperate binary into labeled seperate objects
 5. for each labeled object, isolate
 6. compare
+
 '''
