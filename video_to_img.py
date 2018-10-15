@@ -90,16 +90,15 @@ def capture_and_process():
 
 ''' iterated over photos in DATA_FILE and (currently) sets creates a labeled data set by querying the user
 '''
-def process_sample_photos():
+def train(data_file=DATA_FILE, photo_folder=PHOTO_FOLDER):
     masks.set_train(True)
-    data = load_data(DATA_FILE)
-    for filename in os.listdir(PHOTO_FOLDER):
+    data = load_data(data_file)
+    for filename in os.listdir(photo_folder):
         if filename.endswith(".jpg"):
-            image_name = os.path.join(PHOTO_FOLDER, filename)
-            image = skio.imread("./" + PHOTO_FOLDER + '/' + filename)
+            image_name = os.path.join(photo_folder, filename)
+            image = skio.imread("./" + photo_folder + '/' + filename)
             masks.plot(image)
             new_data = masks.img_to_data(image)
-            # masks.plot(masks.sep_and_strip_img(masks.get_mask(image)))
             data = data.append(new_data, ignore_index=True, sort=True)
             continue
         else:

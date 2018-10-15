@@ -13,7 +13,7 @@ TRAIN = True
 MASK_SENSITIVITY = .2
 MIN_AREA = 100000
 
-# min_column(minc)  -------> max_column (maxc)
+    # min_column(minc)  -------> max_column (maxc)
 # min_row (minr)    |
 #                   |
 # max_row (maxr)   ╲╱

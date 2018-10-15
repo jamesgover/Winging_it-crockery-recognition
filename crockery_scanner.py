@@ -10,7 +10,7 @@ from collections import namedtuple
 import masks_obj_id as masks
 
 
-class meal_scanner:
+class CrockeryScanner:
 
     def __init__(self, width=640, height=480):
         self.dimensions = (width, height)
@@ -53,12 +53,12 @@ class meal_scanner:
                     and data of the regions contained within image
             """
             # Find barcodes and QR codes
-            region_objects = masks.decode(image)
+            r_objs = masks.decode(image)
             # Print results
-            for region in region_objects:
+            for region in r_objs:
                 print('region data : ', region.data)
                 print('position ', region.location)
-            return region_objects
+            return r_objs
 
         result = []
         xboundary = self.dimensions[1]
@@ -81,20 +81,16 @@ class meal_scanner:
                 possible_new_boundaries = [xboundary]
 
             # Define new namedtuple to create new decodedObject
-            DecodedNew = namedtuple('Decoded', ['data', 'type', 'rect', 'polygon', 'xcentre'])
 
             region_objects = sorted(region_objects, key=lambda obj: obj.trailing_edge, reverse=True)
-
             for region in region_objects:
-                # x_centre = decodedObject.xcentre
-                minr, minc, maxr, maxc = region.location
 
                 empty_frame = 0
 
-                if minr < xboundary:
-                    # Only record QR codes that are to the right of previous leftmost QR code.
-                    result.append(str(region.data)[2:-1])
-                possible_new_boundaries.append(x_left)
+                if region.trailing_edge < xboundary:
+                    # Only record objects codes that are to the right of previous leftmost Object
+                    result.append(region.data)
+                possible_new_boundaries.append(region.trailing_edge)
 
             xboundary = min(possible_new_boundaries)
             # Display the resulting frame
@@ -108,7 +104,7 @@ class meal_scanner:
                 # When everything done, release the capture
         cap.release()
         cv2.destroyAllWindows()
-
+        # save data in default file
         print(result)
         return result
 
