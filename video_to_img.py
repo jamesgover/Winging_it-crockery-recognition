@@ -51,11 +51,15 @@ def get_rate():
     return 100
 
 
-''' uses the system camera (webcam for a laptop) to take a video and process frames and stores the 
-resultant data in DATA_FILE to be fed into recognition.py during operation under stream conditions
-this is NOT used for batch processing
-'''
-def capture_and_process():
+
+def live_train():
+    '''
+    uses the system camera (webcam for a laptop) to take a video and process frames and stores the
+    resultant data in DATA_FILE to be fed into recognition.py during operation under stream conditions
+    this is NOT used for batch processing
+    :return: nothing
+    '''
+    masks.set_train(True)
     frame_no = 0
     rate = get_rate()
     # create_dir()
@@ -88,7 +92,8 @@ def capture_and_process():
     save_data(data)
 
 
-''' iterated over photos in DATA_FILE and (currently) sets creates a labeled data set by querying the user
+''' 
+iterated over photos in DATA_FILE and (currently) sets creates a labeled data set by querying the user
 '''
 def train(data_file=DATA_FILE, photo_folder=PHOTO_FOLDER):
     masks.set_train(True)
