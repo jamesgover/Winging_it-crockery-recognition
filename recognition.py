@@ -25,6 +25,7 @@ def create_data(data=None):
 
 def pre_process_data(data):
     X = data.drop(columns=["Type_o_Object"])
+    # print(str(str(X.columns.values)))
     y = pd.DataFrame(data, columns=["Type_o_Object"])
     X_train, X_test, y_train, y_test = sklearn.model_selection.train_test_split(
         X, y, test_size=0.20, random_state=RANDOM_STATE)  # test small large to compensate for small data set
@@ -101,23 +102,27 @@ def train_lr(data):
 # uses subset of data to create a test set
 # SAI APP CHALLENGE NOTES --
 # :param data, the data set to be used by the function
-def main():
+def recognition_main():
     # if a dataset for training and testing does not exist create one by querying the user to identify objects
     try:
         loaded_data = pd.read_csv(filepath_or_buffer=v2i.DATA_FILE)
     except:
-        v2i.process_sample_photos()  # this is to create the data set if it does not exist
+        v2i.train()  # this is to create the data set if it does not exist
 
     # load the dataset (either the one just created or the pre-existing dataset);
     data = create_data()
     X_train, X_test, y_train, y_test = pre_process_data(data)
-    print("the labels of the X vector are: " + str(X_train.columns.values[:4]))
+    print("the labels of the X vector are: " + str(X_train.columns.values))
     print("used to predict the object type")
     print("\nTESTING LEARNING METHODS")
+    # print(str(data))
     train_knn(data)  # k nearest neighbours model
     train_neural_network(data)  # neural network classifier model
     train_lr(data)  # logistic regression
 
 
-main()
+
+if __name__ == "__main__":
+    recognition_main()
+
 

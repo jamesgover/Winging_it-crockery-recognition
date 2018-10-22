@@ -6,17 +6,16 @@ import masks_obj_id as masks
 from skimage import io as skio
 
 FRAMES_FOLDER = 'frames'  # where to save photos by default
-DATA_FILE = 'sample_photos_data.csv'  # the file that stores data
-PHOTO_FOLDER = 'sample_photos'  # directory where program will find photos to use as test set
+DATA_FILE = masks.DATA_FILE  # the file that stores data
+PHOTO_FOLDER = masks.PHOTO_FOLDER  # directory where program will find photos to use as test set
 
 
-
-
-
-''' a wrapper for os.makedirs to handle errors
-@:param folder, the folder to try to make
-'''
 def create_dir(folder=FRAMES_FOLDER):
+    '''
+    a wrapper for os.makedirs to handle errors
+    :param folder: the folder to try to make
+    :return: None
+    '''
     try:
         if not os.path.exists(folder):
             os.makedirs(folder)
@@ -24,32 +23,38 @@ def create_dir(folder=FRAMES_FOLDER):
         print('Error: Creating directory of data')
 
 
-''' function to save data, allows for scanning, redirecting, duplicating, printing and ect. to be implemented
-@:param data, the data to be saved as a csv'''
-def save_data(data):
-    data.to_csv(path_or_buf=DATA_FILE)
+def save_data(data, file=DATA_FILE):
+    '''
+    function to save data, allows for scanning, redirecting, duplicating, printing and ect. to be implemented
+    :param data: the data to be saved as a csv
+    :param file: the file to save the data to
+    :return: None
+    '''
+    data.to_csv(path_or_buf=file)
 
 
-'''
-@:param file, the file to be loaded
-@:return a panda.Dataframe instance capturing the loaded data
-'''
 def load_data(file):
+    '''
+    load the data that is in file
+    :param file: the file to be loaded
+    :return: panda.Dataframe instance capturing the loaded data
+    '''
     data = masks.create_pd_frame(original=False)
     try:
         loaded_data = pd.read_csv(filepath_or_buffer=file)
         data = data.append(loaded_data, ignore_index=True, sort=True)
     except IOError:
-        print("Error: error loading data.")
+        print("No existing data file found")
     return data
 
 
-''' function to be implemented when adapting for a live stream application (attatched to washing machine) 
-instead of just a batch system as we tested it as
-@returns the rate (in frames/(screen_size - crockery_length))'''
 def get_rate():
+    '''
+    function to be implemented when adapting for a live stream application (attatched to washing machine)
+    instead of just a batch system as we tested it as
+    :return: the rate (in frames/(screen_size - crockery_length))
+    '''
     return 100
-
 
 
 def live_train():
@@ -92,10 +97,13 @@ def live_train():
     save_data(data)
 
 
-''' 
-iterated over photos in DATA_FILE and (currently) sets creates a labeled data set by querying the user
-'''
 def train(data_file=DATA_FILE, photo_folder=PHOTO_FOLDER):
+    '''
+    iterated over photos in photo_folder and (currently) sets creates a labeled data set by querying the user
+    :param data_file: the file to save the data to
+    :param photo_folder: the folder to search for photos
+    :return: None
+    '''
     masks.set_train(True)
     data = load_data(data_file)
     for filename in os.listdir(photo_folder):
@@ -112,5 +120,6 @@ def train(data_file=DATA_FILE, photo_folder=PHOTO_FOLDER):
     save_data(data)
 
 
-# process_sample_photos()
+if __name__ == "__main__":
+    train()
 

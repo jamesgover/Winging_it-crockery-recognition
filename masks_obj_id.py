@@ -4,14 +4,17 @@ import matplotlib.patches as mpatch
 from skimage import io as skio
 import skimage
 import skimage.segmentation
+import os
 from skimage import filters, measure
 from collections import namedtuple
 import pandas as pd
 from skimage.color import rgb2gray
 # plt.show()
-TRAIN = True
-MASK_SENSITIVITY = .2
-MIN_AREA = 100000
+TRAIN = False
+MASK_SENSITIVITY = 0.15
+MIN_AREA = 1000
+DATA_FILE = './data/data.csv'  # the file that stores data
+PHOTO_FOLDER = './data/photos'  # directory where program will find photos to use as test set
 
     # min_column(minc)  -------> max_column (maxc)
 # min_row (minr)    |
@@ -32,9 +35,16 @@ def set_train(train):
     TRAIN = train
 
 
+def vid_area():
+    '''
+    simple function to let adjust pixel quantity for video quality
+    '''
+    MIN_AREA = 1000
+
+
 def get_item_string(item):
     if item is 1:
-        item = 'bowl'
+        item = 'cup'
     elif item is 2:
         item = 'plate'
     elif item is 3:
@@ -56,9 +66,9 @@ def label_obj(region, original, train=TRAIN):
         cropped_original = original[minr:maxr, minc:maxc]
         plot(cropped_original)
         try:
-            item = int(input("what is this? \n1=bowl\n2=plate\n3=DROP\n4=ERROR\n"))
+            item = int(input("what is this? \n1=cup\n2=plate\n3=small plate\n4=DROP\n5=ERROR\n"))
         except:
-            item = 4
+            item = 5
         # item = int(input("what is this? \n1=bowl\n2=plate\n3=small_plate\n4=bread_bowl\n5=cup\n6=DROP\n7=ERROR\n"))
         return item
     else:
@@ -73,7 +83,7 @@ def plot(image):
     plt.show()
 
 
-def create_pd_frame(original, region=False):
+def create_pd_frame(original=None, region=False):
     '''creating a panda frame representing the region (or an empty frame if False)
     @:param original, original photo used to display to user in training mode
     @:param region, the region to be captured.
@@ -142,7 +152,8 @@ def get_mask(image):
     '''
     image = rgb2gray(image)
     val = filters.threshold_otsu(image)
-    mask = image < (val + MASK_SENSITIVITY)
+    # print(val)
+    mask = image < (0.501953125 + MASK_SENSITIVITY)
     return mask
 
 
@@ -163,28 +174,40 @@ def decode(image):
         Returns:
             :obj:`list` of :obj:`Decoded`: The values decoded from barcodes.
     """
+    set_train(False)
     region_list = []
     for region in measure.regionprops(sep_and_strip_img(get_mask(image))):
         if region.area >= MIN_AREA:
-            # draw rectangle around segmented coins
+            # print("k")
             minr, minc, maxr, maxc = region.bbox
             rect = mpatch.Rectangle((minc, minr), maxc - minc, maxr - minr,
                                     fill=False, edgecolor='red', linewidth=2)
-            set_train(False)
             region_data = create_pd_frame(region=region)
             region_list.append(Region(data=region_data, location=(minr, minc, maxr, maxc), trailing_edge=minr))
 
     return region_list
 
 
-def masks_main():
+def masks_main(data_file=DATA_FILE, photo_folder=PHOTO_FOLDER):
     '''
     main function for isolating masks_obj features for debugging
     '''
-    image = skio.imread("./sample_photos/20180923_095828.jpg")
-    plot(image)
-    plot(get_mask(image))
-    plot(sep_and_strip_img(get_mask(image)))
-    process_regions(sep_and_strip_img(get_mask(image)), image, show=True)
-    print("data =\n" + str(img_to_data(image)))
+    img = skio.imread("./data/frame.jpg")
+    print(str(decode(img)))
+    #plot(get_mask(img))
+    #plot(sep_and_strip_img(get_mask(img)))
+    return
+    for filename in os.listdir(photo_folder):
+        if filename.endswith(".jpg"):
+            set_train(False)
+            image = skio.imread(PHOTO_FOLDER + "\\" + filename)
+            plot(image)
+            plot(get_mask(image))
+            plot(sep_and_strip_img(get_mask(image)))
+            continue
+        else:
+            continue
+
+if __name__ == "__main__":
+    masks_main()
 
